@@ -42,7 +42,7 @@
             <h2>회원가입</h2>
         </div>
         <div class="row justify-content-center">
-            <form class="needs-validation col-sm-6" action="#" th:action="@{/signup}" th:object="${signUpForm}" method="post" novalidate>
+            <form class="needs-validation col-sm-6" action="#" th:action="@{/sign-up}" th:object="${signUpForm}" method="post" novalidate>
                 <div class="form-group">
                     <label for="nickname">닉네임</label>
                     <input id="nickname" type="text" th:field="*{nickname}" class="form-control" placeholder="MyNameJiGoo" aria-describedby="nicknameHelp" required minlength="3" maxlength="20">
