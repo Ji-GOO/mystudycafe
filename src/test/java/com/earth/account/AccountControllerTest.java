@@ -1,5 +1,6 @@
 package com.earth.account;
 
+import com.earth.domain.Account;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -69,6 +70,9 @@ class AccountControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/"));
 
+        Account account = accountRepository.findByEmail("j22sooj22soo@gmail.com");
+        assertNotNull(account);
+        assertNotEquals(account.getPassword(), "12345678");
         assertTrue(accountRepository.existsByEmail("j22sooj22soo@gmail.com"));
         then(javaMailSender).should().send(any(SimpleMailMessage.class));
     }
