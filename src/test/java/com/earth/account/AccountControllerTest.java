@@ -3,7 +3,6 @@ package com.earth.account;
 import com.earth.domain.Account;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 class AccountControllerTest {
@@ -34,7 +35,40 @@ class AccountControllerTest {
     @MockBean
     JavaMailSender javaMailSender;
 
-    @DisplayName("회원가입 화면 보이는지 테스트")
+    @DisplayName("이메일 인증 확인 - 입력 값 오류 ")
+    @Test
+    void checkEmailToken_with_wrong_input() throws Exception {
+
+        mockMvc.perform(get("/check-email-token")
+                .param("token", "helloworld")
+                .param("email", "test@email.com"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("account/checked-email"))
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @DisplayName("이메일 인증 확인 - 입력 값 정상")
+    @Test
+    void checkEmailToken_correct_input() throws Exception {
+
+        Account account = Account.builder()
+                .email("test@email.com")
+                .nickname("jigoo")
+                .password("12345678")
+                .build();
+        Account newAccount = accountRepository.save(account);
+        newAccount.generateEmailCheckToken();
+
+        mockMvc.perform(get("/check-email-token")
+                .param("token", newAccount.getEmailCheckToken())
+                .param("email", newAccount.getEmail()))
+                .andExpect(model().attributeDoesNotExist("error"))
+                .andExpect(model().attributeExists("nickname"))
+                .andExpect(model().attributeExists("numberOfUser"))
+                .andExpect(view().name("account/checked-email"));
+    }
+
+    @DisplayName("회원가입 화면 정상인지 테스트")
     @Test
     void signUpFormTest() throws Exception {
 
@@ -45,7 +79,7 @@ class AccountControllerTest {
                 .andExpect(model().attributeExists("signUpForm"));
     }
 
-    @DisplayName("회원가입 처리 - 입력값 오류")
+    @DisplayName("회원가입 처리 - 입력 값 오류")
     @Test
     void signUpSubmit_with_wrong_input() throws Exception {
 
@@ -58,23 +92,23 @@ class AccountControllerTest {
                 .andExpect(view().name("account/sign-up"));
     }
 
-    @DisplayName("회원가입 처리 - 입력값 정상")
+    @DisplayName("회원가입 처리 - 입력 값 정상")
     @Test
     void signUpSubmit_with_correct_input() throws Exception {
 
         mockMvc.perform(post("/sign-up")
                 .param("nickname", "jigoo")
-                .param("email", "j22sooj22soo@gmail.com")
+                .param("email", "test@email.com")
                 .param("password", "12345678")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/"));
 
-        Account account = accountRepository.findByEmail("j22sooj22soo@gmail.com");
+        Account account = accountRepository.findByEmail("test@email.com");
         assertNotNull(account);
         assertNotEquals(account.getPassword(), "12345678");
         assertNotNull(account.getEmailCheckToken());
-        assertTrue(accountRepository.existsByEmail("j22sooj22soo@gmail.com"));
+        assertTrue(accountRepository.existsByEmail("test@email.com"));
         then(javaMailSender).should().send(any(SimpleMailMessage.class));
     }
 }
