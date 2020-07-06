@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.validation.Valid;
-import java.time.LocalDateTime;
 
 @Controller
 @RequiredArgsConstructor
@@ -77,5 +76,11 @@ public class AccountController {
         model.addAttribute("nickname", account.getNickname());
 
         return view;
+    }
+
+    @GetMapping("/check_email")
+    public String checkEmail(Account account) {
+
+        return "account/check-email";
     }
 }
