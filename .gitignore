@@ -122,3 +122,7 @@ buildNumber.properties
 .mvn/timing.properties
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar
+
+### NPM ###
+src/main/resources/static/node_modules
+src/main/resources/static/node
